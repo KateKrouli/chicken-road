@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Разбивающееся яйцо с баллами</title>
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-family: sans-serif;
+    background: #f0f0f0;
+  }
+
+  #counter {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  #egg-container {
+    position: relative;
+    width: 150px;
+    height: 200px;
+    cursor: pointer;
+  }
+
+  .egg-half {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at top, #fff, #ccc);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    transition: transform 0.8s ease, opacity 0.8s ease;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    z-index: 1;
+  }
+
+  .egg-half.top { z-index: 2; }
+
+  .egg-half.cracked {
+    background: radial-gradient(circle at top, #fff, #999);
+  }
+
+  .egg-half.broken-left {
+    transform: translateX(-100px) rotate(-20deg) translateY(-20px);
+    opacity: 0.9;
+  }
+
+  .egg-half.broken-right {
+    transform: translateX(100px) rotate(20deg) translateY(20px);
+    opacity: 0.9;
+  }
+
+  #cracks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 150px;
+    height: 200px;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .crack-line {
+    stroke: #555;
+    stroke-width: 2;
+    stroke-linecap: round;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.2s ease;
+  }
+
+  .shake {
+    animation: shake 0.2s ease;
+  }
+
+  @keyframes shake {
+    0% { transform: translate(0,0) rotate(0deg); }
+    20% { transform: translate(-2px,0) rotate(-2deg); }
+    40% { transform: translate(2px,0) rotate(2deg); }
+    60% { transform: translate(-2px,0) rotate(-1deg); }
+    80% { transform: translate(2px,0) rotate(1deg); }
+    100% { transform: translate(0,0) rotate(0deg); }
+  }
+
+  .fragment {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #ccc;
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 1s ease-out, opacity 1s ease-out;
+    z-index: 4;
+  }
+
+  #link {
+    display: none;
+    margin-top: 20px;
+    font-size: 20px;
+    text-decoration: none;
+    color: #007bff;
+  }
+</style>
+</head>
+<body>
+
+<div id="counter">Клики: 0</div>
+
+<div id="egg-container">
+  <div class="egg-half top"></div>
+  <div class="egg-half bottom"></div>
+  <svg id="cracks" viewBox="0 0 150 200">
+    <line class="crack-line" x1="75" y1="20" x2="75" y2="60" />
+    <line class="crack-line" x1="75" y1="60" x2="60" y2="90" />
+    <line class="crack-line" x1="75" y1="60" x2="90" y2="90" />
+    <line class="crack-line" x1="60" y1="90" x2="60" y2="130" />
+    <line class="crack-line" x1="90" y1="90" x2="90" y2="130" />
+    <line class="crack-line" x1="75" y1="130" x2="75" y2="160" />
+  </svg>
+</div>
+
+<a id="link" href="#" target="_blank">Вы накликали на столько-то баллов</a>
+
+<script>
+  const topEgg = document.querySelector('.egg-half.top');
+  const bottomEgg = document.querySelector('.egg-half.bottom');
+  const cracks = document.querySelectorAll('.crack-line');
+  const counterEl = document.getElementById('counter');
+  const link = document.getElementById('link');
+  const eggContainer = document.getElementById('egg-container');
+
+  let clicks = 0;
+  const randomClicksToBreak = Math.floor(Math.random() * 16) + 5;
+  let eggBroken = false; // флаг, чтобы дальше кликать нельзя
+
+  // Генерация осколков
+  const fragments = [];
+  for (let i=0; i<20; i++){
+    const frag = document.createElement('div');
+    frag.className = 'fragment';
+    eggContainer.appendChild(frag);
+    fragments.push(frag);
+  }
+
+  eggContainer.addEventListener('click', () => {
+    if (eggBroken) return; // больше кликать нельзя
+
+    clicks++;
+    counterEl.textContent = `Клики: ${clicks}`;
+
+    // Дрожание яйца
+    eggContainer.classList.remove('shake');
+    void eggContainer.offsetWidth;
+    eggContainer.classList.add('shake');
+
+    // Появление трещин
+    const cracksToShow = Math.min(Math.floor((clicks / randomClicksToBreak) * cracks.length), cracks.length);
+    for (let i = 0; i < cracksToShow; i++) {
+      cracks[i].style.opacity = 1;
+      const dx = (Math.random() - 0.5) * 2;
+      const dy = (Math.random() - 0.5) * 2;
+      cracks[i].style.transform = `translate(${dx}px, ${dy}px)`;
+    }
+
+    if (clicks >= Math.floor(randomClicksToBreak / 2) && clicks < randomClicksToBreak) {
+      topEgg.classList.add('cracked');
+      bottomEgg.classList.add('cracked');
+    }
+
+    // Яйцо лопается
+    if (clicks >= randomClicksToBreak) {
+      eggBroken = true; // больше нельзя кликать
+
+      topEgg.classList.add('broken-left');
+      bottomEgg.classList.add('broken-right');
+
+      // Убираем трещины
+      cracks.forEach(line => line.style.opacity = 0);
+
+      // Динамическая ссылка с количеством кликов
+      link.href = `https://example.com?score=${clicks}`;
+      link.textContent = `Вы накликали ${clicks} баллов`;
+      link.style.display = 'inline';
+
+      // Анимация осколков
+      fragments.forEach(frag => {
+        frag.style.opacity = 1;
+        const angle = Math.random() * Math.PI;
+        const distance = Math.random() * 80 + 20;
+        const dx = Math.cos(angle) * distance * (Math.random() < 0.5 ? -1 : 1);
+        const dy = -Math.sin(angle) * distance;
+        frag.style.transform = `translate(${dx}px, ${dy}px)`;
+      });
+    }
+  });
+</script>
+
+</body>
+</html>
+ 
