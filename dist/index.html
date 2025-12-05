@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chicken Road - Огненная версия</title>
+     
+    <!-- Стили -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Шрифты -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка игры -->
+        <header class="game-header">
+            <h1><i class="fas fa-fire"></i> CHICKEN ROAD: FIRE <span class="demo-badge">DEMO</span></h1>
+            <div class="game-info">
+                <div class="balance-container">
+                    <div class="balance-label">
+                        <i class="fas fa-coins"></i> Баланс:
+                    </div>
+                    <div class="balance-amount" id="balance">1000</div>
+                    <div class="balance-currency">монет</div>
+                </div>
+                <div class="session-stats">
+                    <div class="stat">
+                        <span class="stat-label">Уровень:</span>
+                        <span class="stat-value" id="level">1</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Счет:</span>
+                        <span class="stat-value" id="score">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Игр:</span>
+                        <span class="stat-value" id="games-played">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Побед:</span>
+                        <span class="stat-value" id="wins">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Проигр.:</span>
+                        <span class="stat-value" id="losses">0</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Основная игровая область -->
+        <main class="game-container">
+            <!-- Игровое поле (Canvas) -->
+            <div class="game-area">
+                <canvas id="gameCanvas" width="800" height="500">
+                    Ваш браузер не поддерживает Canvas. Обновите браузер.
+                </canvas>
+                <div class="game-overlay" id="gameOverlay">
+                    <div class="message" id="gameMessage">
+                        <h2>Готовы начать?</h2>
+                        <p>Выберите движение ВПЕРЕД или НАЗАД</p>
+                        <button class="start-btn" id="startBtn">Начать игру</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Панель управления -->
+            <div class="control-panel">
+                <!-- Блок ставки -->
+                <div class="bet-control">
+                    <h3><i class="fas fa-money-bill-wave"></i> Ставка</h3>
+                    <div class="bet-amount">
+                        <button class="bet-btn" data-change="-10">-10</button>
+                        <button class="bet-btn" data-change="-5">-5</button>
+                        <input type="number" id="betAmount" value="10" min="1" max="1000">
+                        <button class="bet-btn" data-change="5">+5</button>
+                        <button class="bet-btn" data-change="10">+10</button>
+                    </div>
+                    <div class="quick-bets">
+                        <button class="quick-bet" data-bet="10">10</button>
+                        <button class="quick-bet" data-bet="50">50</button>
+                        <button class="quick-bet" data-bet="100">100</button>
+                        <button class="quick-bet" data-bet="500">500</button>
+                        <button class="quick-bet" data-bet="max">MAX</button>
+                    </div>
+                </div>
+
+                <!-- Блок направления -->
+                <div class="direction-control">
+                    <h3><i class="fas fa-directions"></i> Направление</h3>
+                    <div class="direction-buttons">
+                        <button class="dir-btn forward" id="moveUp">
+                            <i class="fas fa-arrow-right"></i> ВПЕРЕД
+                        </button>
+                        <button class="dir-btn backward" id="moveDown">
+                            <i class="fas fa-arrow-left"></i> НАЗАД
+                        </button>
+                    </div>
+                    <div class="prediction">
+                        <div class="prediction-label">Ваш выбор:</div>
+                        <div class="prediction-value" id="currentChoice">—</div>
+                    </div>
+                </div>
+
+                <!-- Блок результата -->
+                <div class="result-display">
+                    <h3><i class="fas fa-chart-line"></i> Результат</h3>
+                    <div class="result-info">
+                        <div class="last-result">
+                            <span>Последняя игра:</span>
+                            <span class="result-text" id="lastResult">—</span>
+                        </div>
+                        <div class="multiplier-display">
+                            <span>Множитель:</span>
+                            <span class="multiplier" id="currentMultiplier">x1.5</span>
+                        </div>
+                        <div class="potential-win">
+                            <span>Возможный выигрыш:</span>
+                            <span class="win-amount" id="potentialWin">15</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Кнопки управления -->
+                <div class="action-buttons">
+                    <button class="action-btn auto" id="autoBtn">
+                        <i class="fas fa-redo"></i> Авто-игра
+                    </button>
+                    <button class="action-btn reset" id="resetBtn">
+                        <i class="fas fa-undo"></i> Сбросить
+                    </button>
+                    <button class="action-btn sound" id="soundBtn">
+                        <i class="fas fa-volume-up"></i> Звук
+                    </button>
+                    <button class="action-btn help" id="helpBtn">
+                        <i class="fas fa-question-circle"></i> Помощь
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- История игр -->
+        <aside class="game-history">
+            <h3><i class="fas fa-history"></i> История игр</h3>
+            <div class="history-list" id="historyList">
+                <!-- Сюда будут добавляться записи -->
+                <div class="history-empty">
+                    <p>Здесь будет отображаться история ваших игр</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Футер -->
+        <footer class="game-footer">
+            <div class="footer-info">
+                <p><i class="fas fa-exclamation-triangle"></i> <strong>ВНИМАНИЕ:</strong> Это демо-версия игры. Никакие реальные деньги не используются.</p>
+                <p>Игра создана в образовательных целях. Для лиц старше 18 лет.</p>
+            </div>
+            <div class="footer-controls">
+                <button class="footer-btn" id="addCoinsBtn">
+                    <i class="fas fa-plus-circle"></i> Добавить монеты
+                </button>
+                <button class="footer-btn" id="clearHistoryBtn">
+                    <i class="fas fa-trash"></i> Очистить историю
+                </button>
+            </div>
+        </footer>
+
+        <!-- Модальное окно помощи -->
+     <!-- Модальное окно помощи -->
+<div class="modal" id="helpModal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2><i class="fas fa-book"></i> Правила игры (Простая версия)</h2>
+        <div class="modal-body">
+            <h3>Как играть:</h3>
+            <ol>
+                <li>Установите размер ставки</li>
+                <li>Нажмите кнопку "Начать игру"</li>
+                <li>Нажимайте кнопку "ВПЕРЕД" чтобы двигать цыпленка</li>
+                <li>Каждый шаг перемещает на следующий участок</li>
+                <li>Если на участке нет пламени - вы проходите дальше</li>
+                <li>Если на участке есть пламя - игра заканчивается</li>
+                <li>Ваш выигрыш = ставка × множитель участка, где сгорел цыпленок</li>
+                <li>Если дошли до финиша - выигрыш = ставка × множитель финиша (1.60x)</li>
+            </ol>
+            
+            <h3>Участки и множители:</h3>
+            <div class="multipliers-grid">
+                <div>Старт: <strong>1.00x</strong></div>
+                <div>Участок 1: <strong>1.03x</strong></div>
+                <div>Участок 2: <strong>1.07x</strong></div>
+                <div>Участок 3: <strong>1.11x</strong></div>
+                <div>Участок 4: <strong>1.16x</strong></div>
+                <div>Участок 5: <strong>1.21x</strong></div>
+                <div>Участок 6: <strong>1.26x</strong></div>
+                <div>Участок 7: <strong>1.31x</strong></div>
+                <div>Участок 8: <strong>1.36x</strong></div>
+                <div>Участок 9: <strong>1.42x</strong></div>
+                <div>Участок 10: <strong>1.48x</strong></div>
+                <div>Участок 11: <strong>1.54x</strong></div>
+                <div>Финиш: <strong>1.60x</strong></div>
+            </div>
+            
+            <h3>Особенности:</h3>
+            <ul>
+                <li><strong>Пламя</strong> появляется и исчезает случайным образом</li>
+                <li><strong>Каждый участок</strong> имеет фиксированный множитель</li>
+                <strong>Чем дальше заходите - тем больше множитель, но выше риск</strong>
+                <li>На старте пламени никогда нет</li>
+                <li>Можно остановиться в любой момент (не доходя до пламени)</li>
+            </ul>
+            
+            <h3>Примеры:</h3>
+            <ul>
+                <li>Ставка 100 → сгорел на участке 3 (1.11x) → выигрыш 111 монет</li>
+                <li>Ставка 100 → сгорел на участке 8 (1.36x) → выигрыш 136 монет</li>
+                <li>Ставка 100 → дошел до финиша (1.60x) → выигрыш 160 монет</li>
+            </ul>
+            
+            <p class="warning"><i class="fas fa-exclamation-circle"></i> Это демо-версия для развлечения. Все монеты виртуальные.</p>
+        </div>
+    </div>
+</div>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="js/game.js" defer=""></script>
+    <script src="js/ui.js" defer=""></script>
+    <script src="js/main.js" defer=""></script>
+</body>
+</html>
